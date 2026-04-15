@@ -1,0 +1,196 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Get a free hosted Postgres database in seconds: `npx create-db`
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum Role {
+  ADMIN
+  DOSEN
+  MAHASISWA
+}
+
+enum ApprovalStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
+model User {
+  id         String     @id @default(uuid())
+  name       String
+  email      String     @unique
+  password   String
+  role       Role
+  npm        String?    @unique
+  approvalStatus ApprovalStatus @default(APPROVED)
+  approvedAt DateTime?
+  position   String?
+  skillLevel String?
+  progress   Progress[]
+
+  quizResults           QuizResult[]
+  recommendations       AIRecommendation[]
+  createdAt             DateTime               @default(now())
+  assignmentSubmissions AssignmentSubmission[]
+}
+
+enum QuestionType {
+  MCQ
+  ESSAY
+}
+
+enum QuizStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
+enum Difficulty {
+  EASY
+  MEDIUM
+  HARD
+}
+
+model Course {
+  id          String       @id @default(uuid())
+  title       String
+  description String
+  level       String
+  category    String
+  modules     Module[]
+  progress    Progress[]
+  createdAt   DateTime     @default(now())
+  assignments Assignment[]
+}
+
+model Module {
+  id          String   @id @default(uuid())
+  title       String
+  content     String
+  type        String   @default("TEXT") // TEXT | VIDEO | CODE
+  videoUrl    String?
+  fileUrl     String?
+  duration    Int?
+  difficulty  String   @default("BEGINNER")
+  isPublished Boolean  @default(false)
+  order       Int
+  courseId    String
+  course      Course   @relation(fields: [courseId], references: [id])
+  quizzes     Quiz[]
+  lessons     Lesson[]
+}
+
+model Lesson {
+  id       String @id @default(uuid())
+  moduleId String
+
+  title   String
+  type    String // TEXT | VIDEO | CODE
+  content String?
+  fileUrl String?
+
+  videoUrl String?
+  duration Int?
+
+  order Int
+
+  module Module @relation(fields: [moduleId], references: [id])
+}
+
+model Quiz {
+  id        String     @id @default(uuid())
+  title     String
+  moduleId  String
+  module    Module     @relation(fields: [moduleId], references: [id])
+  questions Question[]
+
+  quizResults QuizResult[]
+  status      String       @default("PENDING")
+}
+
+model Question {
+  id         String      @id @default(uuid())
+  quizId     String
+  question   String
+  type       String // "MCQ" | "ESSAY"
+  options    Json? // hanya untuk MCQ
+  answer     String? // bisa kosong kalau essay
+  difficulty Difficulty?
+
+  quiz Quiz @relation(fields: [quizId], references: [id])
+}
+
+model QuizResult {
+  id        String   @id @default(uuid())
+  userId    String
+  quizId    String
+  score     Int
+  answers   Json // { questionId: "jawaban user" }
+  correct   Int //  jumlah benar
+  wrong     Int //  jumlah salah
+  createdAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id])
+  quiz Quiz @relation(fields: [quizId], references: [id])
+}
+
+model Progress {
+  id       String @id @default(uuid())
+  userId   String
+  courseId String
+  progress Int
+  status   String
+  user     User   @relation(fields: [userId], references: [id])
+  course   Course @relation(fields: [courseId], references: [id])
+}
+
+model AIRecommendation {
+  id        String   @id @default(uuid())
+  userId    String
+  data      Json
+  createdAt DateTime @default(now())
+  user      User     @relation(fields: [userId], references: [id])
+}
+
+model Assignment {
+  id          String   @id @default(uuid())
+  title       String
+  description String   @db.Text
+  dueDate     DateTime // Batas waktu pengumpulan tugas
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // Relasi ke Mata Kuliah (Course)
+  courseId String
+  course   Course @relation(fields: [courseId], references: [id], onDelete: Cascade)
+
+  // Relasi ke Pengumpulan Tugas Mahasiswa
+  submissions AssignmentSubmission[]
+}
+
+model AssignmentSubmission {
+  id          String   @id @default(uuid())
+  fileUrl     String   @db.Text // Link file PDF/Word yang diupload mahasiswa
+  score       Float? // Nilai dari dosen (bisa kosong sebelum dinilai)
+  feedback    String?  @db.Text // Komentar/Feedback dari dosen
+  submittedAt DateTime @default(now()) // Waktu mahasiswa mengumpulkan tugas
+
+  // Relasi ke Tugas
+  assignmentId String
+  assignment   Assignment @relation(fields: [assignmentId], references: [id], onDelete: Cascade)
+
+  // Relasi ke Mahasiswa (User)
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  // Aturan: 1 Mahasiswa hanya bisa punya 1 pengumpulan per Tugas
+  @@unique([assignmentId, userId])
+}

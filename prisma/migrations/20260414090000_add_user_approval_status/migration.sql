@@ -1,0 +1,5 @@
+CREATE TYPE "ApprovalStatus" AS ENUM ('PENDING', 'APPROVED', 'REJECTED');
+
+ALTER TABLE "User"
+ADD COLUMN "approvalStatus" "ApprovalStatus" NOT NULL DEFAULT 'APPROVED',
+ADD COLUMN "approvedAt" TIMESTAMP(3);
