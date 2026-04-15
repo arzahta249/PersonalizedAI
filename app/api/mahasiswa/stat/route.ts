@@ -1,6 +1,16 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 
+type LatestModuleItem = {
+  id: string;
+  courseId: string;
+  title: string;
+  course: {
+    id: string;
+    title: string;
+  } | null;
+};
+
 export async function GET(req: Request) {
   try {
     const { searchParams } = new URL(req.url);
@@ -47,7 +57,7 @@ export async function GET(req: Request) {
         : 0,
     ]);
 
-    const formattedModules = latestModules.map((moduleItem) => ({
+    const formattedModules = (latestModules as LatestModuleItem[]).map((moduleItem: LatestModuleItem) => ({
       id: moduleItem.id,
       courseId: moduleItem.course?.id || moduleItem.courseId,
       title: moduleItem.title,
