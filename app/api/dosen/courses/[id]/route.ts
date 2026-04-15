@@ -4,11 +4,13 @@ import { NextResponse } from "next/server";
 // 🔥 GET DETAIL
 export async function GET(
   req: Request,
-  context: { params: { id: string } }
+  context: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { id } = await context.params;
+
     const course = await prisma.course.findUnique({
-      where: { id: context.params.id },
+      where: { id },
       include: {
         modules: {
           include: {
@@ -38,10 +40,10 @@ export async function GET(
 // 🔥 DELETE COURSE
 export async function DELETE(
   req: Request,
-  context: { params: { id: string } }
+  context: { params: Promise<{ id: string }> }
 ) {
   try {
-    const { id } = context.params;
+    const { id } = await context.params;
 
     await prisma.module.deleteMany({
       where: { courseId: id },

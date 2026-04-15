@@ -3,10 +3,10 @@ import { prisma } from "@/lib/prisma";
 
 export async function DELETE(
   req: Request,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const { id } = params;
+    const { id } = await params;
     await prisma.lesson.delete({
       where: { id },
     });
@@ -20,11 +20,12 @@ export async function DELETE(
 // Tambahkan PATCH jika ingin fitur edit di masa depan
 export async function PATCH(
     req: Request,
-    { params }: { params: { id: string } }
+    { params }: { params: Promise<{ id: string }> }
   ) {
     const body = await req.json();
+    const { id } = await params;
     const updated = await prisma.lesson.update({
-      where: { id: params.id },
+      where: { id },
       data: body,
     });
     return NextResponse.json(updated);
