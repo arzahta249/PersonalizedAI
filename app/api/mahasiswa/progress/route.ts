@@ -29,6 +29,10 @@ type AssignmentSubmissionItem = {
   };
 };
 
+type CourseModuleItem = {
+  order: number;
+};
+
 type CourseCard = {
   id: string;
   courseTitle: string;
@@ -168,7 +172,7 @@ export async function POST(req: Request) {
 
     const totalModules = Math.max(moduleItem.course.modules.length, 1);
     const completedModules = moduleItem.course.modules.filter(
-      (courseModule) => courseModule.order <= moduleItem.order
+      (courseModule: CourseModuleItem) => courseModule.order <= moduleItem.order
     ).length;
     const progressValue = Math.min(100, Math.round((completedModules / totalModules) * 100));
     const status = progressValue >= 100 ? "SELESAI" : progressValue > 0 ? "BERJALAN" : "BARU";
