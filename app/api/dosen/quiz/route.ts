@@ -2,6 +2,15 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 
 const VALID_DIFFICULTIES = ["EASY", "MEDIUM", "HARD"] as const;
+const VALID_QUESTION_TYPES = ["MCQ", "ESSAY"] as const;
+
+type QuizQuestionInput = {
+  question?: unknown;
+  type?: unknown;
+  options?: unknown;
+  answer?: unknown;
+  difficulty?: unknown;
+};
 
 function normalizeDifficulty(value: unknown): (typeof VALID_DIFFICULTIES)[number] {
   if (typeof value !== "string") {
@@ -12,6 +21,17 @@ function normalizeDifficulty(value: unknown): (typeof VALID_DIFFICULTIES)[number
   return VALID_DIFFICULTIES.includes(normalized as (typeof VALID_DIFFICULTIES)[number])
     ? (normalized as (typeof VALID_DIFFICULTIES)[number])
     : "MEDIUM";
+}
+
+function normalizeQuestionType(value: unknown): (typeof VALID_QUESTION_TYPES)[number] {
+  if (typeof value !== "string") {
+    return "MCQ";
+  }
+
+  const normalized = value.trim().toUpperCase();
+  return VALID_QUESTION_TYPES.includes(normalized as (typeof VALID_QUESTION_TYPES)[number])
+    ? (normalized as (typeof VALID_QUESTION_TYPES)[number])
+    : "MCQ";
 }
 
 export async function GET() {
@@ -51,7 +71,7 @@ export async function POST(req: Request) {
     const body = await req.json();
     const title = typeof body.title === "string" ? body.title.trim() : "";
     const moduleId = typeof body.moduleId === "string" ? body.moduleId : "";
-    const questions = Array.isArray(body.questions) ? body.questions : [];
+    const questions: QuizQuestionInput[] = Array.isArray(body.questions) ? body.questions : [];
 
     if (!title || !moduleId || questions.length === 0) {
       return NextResponse.json({ message: "Judul, modul, dan pertanyaan wajib diisi." }, { status: 400 });
@@ -64,8 +84,8 @@ export async function POST(req: Request) {
         status: "PENDING",
         questions: {
           create: questions.map((question) => ({
-            question: question.question,
-            type: question.type,
+            question: typeof question.question === "string" ? question.question.trim() : "",
+            type: normalizeQuestionType(question.type),
             options: Array.isArray(question.options) ? question.options : null,
             answer: typeof question.answer === "string" ? question.answer : "",
             difficulty: normalizeDifficulty(question.difficulty),
