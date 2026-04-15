@@ -1,6 +1,45 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 
+type ProgressRowItem = {
+  courseId: string;
+  progress: number;
+  status: string;
+  course: {
+    title: string;
+    modules: Array<{
+      quizzes: Array<unknown>;
+    }>;
+  };
+};
+
+type QuizResultItem = {
+  quiz: {
+    module: {
+      course: {
+        id: string;
+      };
+    };
+  };
+};
+
+type AssignmentSubmissionItem = {
+  assignment: {
+    courseId: string;
+  };
+};
+
+type CourseCard = {
+  id: string;
+  courseTitle: string;
+  progress: number;
+  status: string;
+  totalModules: number;
+  totalQuizzes: number;
+  completedQuizzes: number;
+  submittedAssignments: number;
+};
+
 export async function GET(req: Request) {
   try {
     const { searchParams } = new URL(req.url);
@@ -50,14 +89,17 @@ export async function GET(req: Request) {
       }),
     ]);
 
-    const courseCards = progressRows.map((item) => {
+    const courseCards = (progressRows as ProgressRowItem[]).map((item: ProgressRowItem) => {
       const totalModules = item.course.modules.length;
-      const totalQuizzes = item.course.modules.reduce((acc, moduleItem) => acc + moduleItem.quizzes.length, 0);
-      const completedQuizzes = quizzes.filter(
-        (quiz) => quiz.quiz.module.course.id === item.courseId
+      const totalQuizzes = item.course.modules.reduce(
+        (acc: number, moduleItem: ProgressRowItem["course"]["modules"][number]) => acc + moduleItem.quizzes.length,
+        0
+      );
+      const completedQuizzes = (quizzes as QuizResultItem[]).filter(
+        (quiz: QuizResultItem) => quiz.quiz.module.course.id === item.courseId
       ).length;
-      const submittedAssignments = assignments.filter(
-        (submission) => submission.assignment.courseId === item.courseId
+      const submittedAssignments = (assignments as AssignmentSubmissionItem[]).filter(
+        (submission: AssignmentSubmissionItem) => submission.assignment.courseId === item.courseId
       ).length;
 
       return {
@@ -74,11 +116,11 @@ export async function GET(req: Request) {
 
     const averageProgress =
       courseCards.length > 0
-        ? Math.round(courseCards.reduce((acc, item) => acc + item.progress, 0) / courseCards.length)
+        ? Math.round(courseCards.reduce((acc: number, item: CourseCard) => acc + item.progress, 0) / courseCards.length)
         : 0;
 
     const bestCourse =
-      courseCards.sort((a, b) => b.progress - a.progress)[0]?.courseTitle || "Belum ada progres";
+      courseCards.sort((a: CourseCard, b: CourseCard) => b.progress - a.progress)[0]?.courseTitle || "Belum ada progres";
 
     return NextResponse.json({
       summary: {
