@@ -1,7 +1,12 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import bcrypt from "bcrypt";
-import { ApprovalStatus, Role } from "@prisma/client";
+
+const ROLES = ["ADMIN", "DOSEN", "MAHASISWA"] as const;
+const APPROVAL_STATUSES = ["PENDING", "APPROVED", "REJECTED"] as const;
+
+type Role = (typeof ROLES)[number];
+type ApprovalStatus = (typeof APPROVAL_STATUSES)[number];
 
 export async function POST(req: Request) {
   try {
@@ -20,7 +25,7 @@ export async function POST(req: Request) {
       );
     }
 
-    if (!Object.values(Role).includes(rawRole as Role)) {
+    if (!ROLES.includes(rawRole as Role)) {
       return NextResponse.json(
         { message: "Role tidak valid" },
         { status: 400 }
@@ -44,28 +49,28 @@ export async function POST(req: Request) {
       );
     }
 
-    if (role !== Role.ADMIN && !npm) {
+    if (role !== "ADMIN" && !npm) {
       return NextResponse.json(
         { message: "NPM atau NIDN wajib diisi" },
         { status: 400 }
       );
     }
 
-    if (role === Role.MAHASISWA && !npm.startsWith("66")) {
+    if (role === "MAHASISWA" && !npm.startsWith("66")) {
       return NextResponse.json(
         { message: "NPM mahasiswa harus diawali 66" },
         { status: 400 }
       );
     }
 
-    if (role === Role.DOSEN && !npm.startsWith("44")) {
+    if (role === "DOSEN" && !npm.startsWith("44")) {
       return NextResponse.json(
         { message: "NIDN dosen harus diawali 44" },
         { status: 400 }
       );
     }
 
-    if (role === Role.ADMIN) {
+    if (role === "ADMIN") {
       const expectedAdminCode = process.env.ADMIN_REGISTER_CODE;
 
       if (!expectedAdminCode) {
@@ -109,7 +114,7 @@ export async function POST(req: Request) {
 
     const hashedPassword = await bcrypt.hash(password, 10);
     const approvalStatus =
-      role === Role.DOSEN ? ApprovalStatus.PENDING : ApprovalStatus.APPROVED;
+      role === "DOSEN" ? "PENDING" : "APPROVED";
 
     await prisma.user.create({
       data: {
@@ -118,14 +123,14 @@ export async function POST(req: Request) {
         password: hashedPassword,
         role,
         npm: npm || null,
-        approvalStatus,
-        approvedAt: approvalStatus === ApprovalStatus.APPROVED ? new Date() : null,
+        approvalStatus: approvalStatus as ApprovalStatus,
+        approvedAt: approvalStatus === "APPROVED" ? new Date() : null,
       },
     });
 
     return NextResponse.json({
       message:
-        role === Role.DOSEN
+        role === "DOSEN"
           ? "Pendaftaran dosen berhasil. Tunggu persetujuan admin sebelum login."
           : "Register berhasil, silakan login",
     });

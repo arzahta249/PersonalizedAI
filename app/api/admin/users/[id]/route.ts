@@ -1,6 +1,11 @@
 import { prisma } from "@/lib/prisma";
 import { NextResponse } from "next/server";
-import { ApprovalStatus, Role } from "@prisma/client";
+
+const APPROVAL_STATUSES = ["PENDING", "APPROVED", "REJECTED"] as const;
+const ROLES = ["ADMIN", "DOSEN", "MAHASISWA"] as const;
+
+type ApprovalStatus = (typeof APPROVAL_STATUSES)[number];
+type Role = (typeof ROLES)[number];
 
 export async function GET(
   req: Request,
@@ -68,7 +73,7 @@ export async function PATCH(
       );
     }
 
-    if (!Object.values(ApprovalStatus).includes(nextStatus as ApprovalStatus)) {
+    if (!APPROVAL_STATUSES.includes(nextStatus as ApprovalStatus)) {
       return NextResponse.json(
         { message: "Status approval tidak valid" },
         { status: 400 }
@@ -87,7 +92,7 @@ export async function PATCH(
       );
     }
 
-    if (existingUser.role !== Role.DOSEN) {
+    if ((existingUser.role as Role) !== "DOSEN") {
       return NextResponse.json(
         { message: "Approval hanya berlaku untuk akun dosen" },
         { status: 400 }
@@ -98,7 +103,7 @@ export async function PATCH(
       where: { id },
       data: {
         approvalStatus: nextStatus as ApprovalStatus,
-        approvedAt: nextStatus === ApprovalStatus.APPROVED ? new Date() : null,
+        approvedAt: nextStatus === "APPROVED" ? new Date() : null,
       },
       select: {
         id: true,
@@ -111,7 +116,7 @@ export async function PATCH(
 
     return NextResponse.json({
       message:
-        nextStatus === ApprovalStatus.APPROVED
+        nextStatus === "APPROVED"
           ? "Akun dosen berhasil disetujui"
           : "Status akun dosen berhasil diperbarui",
       user,

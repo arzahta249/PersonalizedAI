@@ -2,7 +2,6 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
-import { ApprovalStatus } from "@prisma/client";
 
 export async function POST(req: Request) {
   try {
@@ -45,11 +44,11 @@ export async function POST(req: Request) {
       );
     }
 
-    if (user.role === "DOSEN" && user.approvalStatus !== ApprovalStatus.APPROVED) {
+    if (user.role === "DOSEN" && user.approvalStatus !== "APPROVED") {
       return NextResponse.json(
         {
           message:
-            user.approvalStatus === ApprovalStatus.REJECTED
+            user.approvalStatus === "REJECTED"
               ? "Akun dosen ditolak admin. Hubungi admin untuk informasi lebih lanjut."
               : "Akun dosen belum disetujui admin. Silakan tunggu approval terlebih dahulu.",
         },
