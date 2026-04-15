@@ -99,7 +99,7 @@ export async function POST(req: Request) {
           create: questions.map((question) => ({
             question: typeof question.question === "string" ? question.question.trim() : "",
             type: normalizeQuestionType(question.type),
-            options: Array.isArray(question.options) ? question.options : null,
+            options: Array.isArray(question.options) ? question.options : undefined,
             answer: typeof question.answer === "string" ? question.answer : "",
             difficulty: normalizeDifficulty(question.difficulty),
           })),
