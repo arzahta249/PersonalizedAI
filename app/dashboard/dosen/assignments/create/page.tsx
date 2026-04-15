@@ -12,11 +12,18 @@ type CourseRow = {
   title: string;
 };
 
+type AssignmentFormData = {
+  title: string;
+  courseId: string;
+  dueDate: string;
+  description: string;
+};
+
 export default function CreateAssignmentPage() {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
   const [courses, setCourses] = useState<CourseRow[]>([]);
-  const [formData, setFormData] = useState({
+  const [formData, setFormData] = useState<AssignmentFormData>({
     title: "",
     courseId: "",
     dueDate: "",
@@ -72,10 +79,13 @@ export default function CreateAssignmentPage() {
         onApply={(draft) => {
           const nextDue = new Date();
           nextDue.setDate(nextDue.getDate() + (typeof draft.dueInDays === "number" ? draft.dueInDays : 7));
-          setFormData((prev) => ({
+          const nextTitle = typeof draft.title === "string" ? draft.title.trim() : "";
+          const nextDescription = typeof draft.description === "string" ? draft.description.trim() : "";
+
+          setFormData((prev: AssignmentFormData) => ({
             ...prev,
-            title: draft.title || prev.title,
-            description: draft.description || prev.description,
+            title: nextTitle || prev.title,
+            description: nextDescription || prev.description,
             dueDate: nextDue.toISOString().slice(0, 16),
           }));
         }}
