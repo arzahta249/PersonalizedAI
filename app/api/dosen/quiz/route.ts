@@ -12,6 +12,19 @@ type QuizQuestionInput = {
   difficulty?: unknown;
 };
 
+type QuizListItem = {
+  id: string;
+  title: string;
+  status: string;
+  module: {
+    title: string | null;
+    course: {
+      title: string | null;
+    } | null;
+  } | null;
+  questions: Array<unknown>;
+};
+
 function normalizeDifficulty(value: unknown): (typeof VALID_DIFFICULTIES)[number] {
   if (typeof value !== "string") {
     return "MEDIUM";
@@ -36,7 +49,7 @@ function normalizeQuestionType(value: unknown): (typeof VALID_QUESTION_TYPES)[nu
 
 export async function GET() {
   try {
-    const quizzes = await prisma.quiz.findMany({
+    const quizzes: QuizListItem[] = await prisma.quiz.findMany({
       include: {
         module: {
           include: {
@@ -51,7 +64,7 @@ export async function GET() {
     });
 
     return NextResponse.json(
-      quizzes.map((quiz) => ({
+      quizzes.map((quiz: QuizListItem) => ({
         id: quiz.id,
         title: quiz.title,
         status: quiz.status,
