@@ -1,6 +1,15 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 
+type LatestQuizResultItem = {
+  user: {
+    name: string;
+  };
+  quiz: {
+    title: string;
+  };
+};
+
 export async function GET() {
   try {
     // Menggunakan Promise.all agar fetch data lebih cepat (paralel)
@@ -33,7 +42,7 @@ export async function GET() {
     ]);
 
     // Format data aktivitas agar rapi di tampilkan di UI
-    const formattedActivities = latestResults.map(res => ({
+    const formattedActivities = (latestResults as LatestQuizResultItem[]).map((res: LatestQuizResultItem) => ({
       title: `${res.user.name} menyelesaikan ${res.quiz.title}`,
       time: "Baru saja"
     }));
