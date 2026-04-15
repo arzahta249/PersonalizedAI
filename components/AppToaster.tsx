@@ -1,7 +1,7 @@
 "use client";
 
 import { CheckCircle2, AlertTriangle, Sparkles, X } from "lucide-react";
-import { Toaster, ToastBar, toast } from "react-hot-toast";
+import { Toaster, ToastBar, resolveValue, toast } from "react-hot-toast";
 
 export default function AppToaster() {
   return (
@@ -27,6 +27,7 @@ export default function AppToaster() {
           {() => {
             const isSuccess = t.type === "success";
             const isError = t.type === "error";
+            const message = resolveValue(t.message, t);
 
             return (
               <div
@@ -49,7 +50,7 @@ export default function AppToaster() {
                   <p className="toast-title">
                     {isSuccess ? "Berhasil" : isError ? "Perlu Perhatian" : "Informasi"}
                   </p>
-                  <div className="toast-message">{typeof t.message === "string" ? t.message : t.message}</div>
+                  <div className="toast-message">{message}</div>
                 </div>
 
                 <button

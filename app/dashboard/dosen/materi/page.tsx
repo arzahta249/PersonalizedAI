@@ -21,6 +21,16 @@ type ModuleRow = {
   content?: string;
 };
 
+type ModuleForm = {
+  title: string;
+  content: string;
+  type: string;
+  videoUrl: string;
+  fileUrl: string;
+  difficulty: string;
+  order: number;
+};
+
 export default function MateriPage() {
   const [courses, setCourses] = useState<CourseRow[]>([]);
   const [selectedCourse, setSelectedCourse] = useState("");
@@ -29,7 +39,7 @@ export default function MateriPage() {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [isUploading, setIsUploading] = useState(false);
-  const [form, setForm] = useState({
+  const [form, setForm] = useState<ModuleForm>({
     title: "",
     content: "",
     type: "TEXT",
@@ -133,12 +143,17 @@ export default function MateriPage() {
         type="MATERI"
         courses={courses.map((course) => ({ id: course.id, title: course.title }))}
         onApply={(draft) => {
-          setForm((prev) => ({
+          const nextTitle = typeof draft.title === "string" ? draft.title.trim() : "";
+          const nextType = typeof draft.type === "string" ? draft.type.trim() : "";
+          const nextDifficulty = typeof draft.difficulty === "string" ? draft.difficulty.trim() : "";
+          const nextContent = typeof draft.content === "string" ? draft.content.trim() : "";
+
+          setForm((prev: ModuleForm) => ({
             ...prev,
-            title: draft.title || prev.title,
-            type: draft.type || prev.type,
-            difficulty: draft.difficulty || prev.difficulty,
-            content: draft.content || prev.content,
+            title: nextTitle || prev.title,
+            type: nextType || prev.type,
+            difficulty: nextDifficulty || prev.difficulty,
+            content: nextContent || prev.content,
           }));
         }}
       />
