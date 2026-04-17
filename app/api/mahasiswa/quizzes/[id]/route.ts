@@ -1,6 +1,11 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import type { Question } from "@prisma/client";
+
+type ScorableQuestion = {
+  id: string;
+  type: string;
+  answer: string | null;
+};
 
 function normalizeAnswer(value: unknown) {
   if (typeof value !== "string") return "";
@@ -233,7 +238,7 @@ export async function POST(
     let correctCount = 0;
     const totalQuestions = quiz.questions.length;
 
-    quiz.questions.forEach((q: Question) => {
+    quiz.questions.forEach((q: ScorableQuestion) => {
       const kunciJawaban = q.answer || "";
       const jawabanMahasiswa = typeof answers?.[q.id] === "string" ? answers[q.id] : "";
       
