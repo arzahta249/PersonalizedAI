@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import type { Question } from "@prisma/client";
 
 function normalizeAnswer(value: unknown) {
   if (typeof value !== "string") return "";
@@ -232,9 +233,8 @@ export async function POST(
     let correctCount = 0;
     const totalQuestions = quiz.questions.length;
 
-    quiz.questions.forEach((q) => {
-      // Cek field kunci jawaban (bisa 'correctAnswer' atau 'answer' tergantung schema)
-      const kunciJawaban = q.correctAnswer || q.answer || "";
+    quiz.questions.forEach((q: Question) => {
+      const kunciJawaban = q.answer || "";
       const jawabanMahasiswa = typeof answers?.[q.id] === "string" ? answers[q.id] : "";
       
       // Jika opsi yang dipilih sama dengan kunci jawaban, maka benar
