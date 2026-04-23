@@ -9,12 +9,17 @@ const globalForPrisma = globalThis as {
 const databaseUrl = process.env.DATABASE_URL;
 
 if (!databaseUrl) {
-  throw new Error("DATABASE_URL belum diset. Tambahkan environment variable ini di Vercel/hosting.");
+  throw new Error(
+    "DATABASE_URL belum diset. Isi dengan runtime Postgres URL, idealnya pooled Supabase URL saat production."
+  );
 }
 
 // 🔥 buat koneksi pool
+const poolMax = Number(process.env.PG_POOL_MAX ?? (process.env.NODE_ENV === "production" ? 5 : 10));
+
 const pool = new Pool({
   connectionString: databaseUrl,
+  max: Number.isFinite(poolMax) && poolMax > 0 ? poolMax : undefined,
 });
 
 // 🔥 pakai adapter

@@ -1,36 +1,75 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# E-Learning AI
 
-## Getting Started
+Next.js + Prisma learning platform with PostgreSQL-compatible deployment support, including Supabase bootstrap and legacy data transfer helpers.
 
-First, run the development server:
+## Development
 
 ```bash
+npm install
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## Supabase setup
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+Copy [.env.supabase.example](.env.supabase.example) into `.env`, then fill:
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+- `DATABASE_URL`: Supabase pooled runtime URL
+- `DIRECT_URL`: Supabase direct database URL for Prisma CLI and bootstrap
+- `SOURCE_DATABASE_URL`: old PostgreSQL database you want to migrate from
+- `JWT_SECRET`, `OPENROUTER_API_KEY`, `ADMIN_REGISTER_CODE`: existing app secrets
 
-## Learn More
+## Schema bootstrap
 
-To learn more about Next.js, take a look at the following resources:
+This repo contains a fresh SQL snapshot in [prisma/supabase-baseline.sql](prisma/supabase-baseline.sql) generated from the current Prisma schema. Use it once on a new Supabase database:
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+```bash
+npm run db:supabase:bootstrap
+```
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+If the target database is not empty and you still want to continue:
 
-## Deploy on Vercel
+```bash
+npm run db:supabase:bootstrap -- --force
+```
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+## Legacy data migration
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+Export data from the old PostgreSQL database:
+
+```bash
+npm run db:export:postgres
+```
+
+The export will be written to `prisma/data-export/`.
+
+Import the exported JSON into Supabase:
+
+```bash
+npm run db:import:supabase
+```
+
+If you want to append instead of truncating first:
+
+```bash
+npm run db:import:supabase -- --no-truncate
+```
+
+## Prisma commands
+
+Prisma CLI is configured in [prisma.config.ts](prisma.config.ts) to prefer `DIRECT_URL` and fall back to `DATABASE_URL`.
+
+Useful commands:
+
+```bash
+npm run db:generate
+npm run db:push
+npm run build
+```
+
+## Deployment checklist
+
+1. Fill Supabase env values in your hosting platform.
+2. Run `npm run db:supabase:bootstrap` once against the fresh Supabase project.
+3. Run `npm run db:export:postgres`.
+4. Run `npm run db:import:supabase`.
+5. Deploy the Next.js app.

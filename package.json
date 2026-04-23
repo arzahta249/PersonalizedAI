@@ -4,9 +4,15 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
+    "prebuild": "prisma generate",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "db:generate": "prisma generate",
+    "db:push": "prisma db push",
+    "db:supabase:bootstrap": "node scripts/db/bootstrap-supabase.mjs",
+    "db:export:postgres": "node scripts/db/export-postgres.mjs",
+    "db:import:supabase": "node scripts/db/import-postgres.mjs"
   },
   "dependencies": {
     "@prisma/adapter-pg": "^7.6.0",
