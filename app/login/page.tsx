@@ -189,7 +189,10 @@ export default function LoginPage() {
             <form onSubmit={handleLogin} className="space-y-4 sm:space-y-5">
               <div className="bg-slate-50 border border-slate-100 rounded-2xl p-2 shadow-inner transform group hover:border-blue-100 hover:bg-white hover:shadow-lg transition-all duration-300">
                 <input
+                  id="login-email"
+                  name="email"
                   type="email"
+                  autoComplete="email"
                   placeholder="name@company.com"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
@@ -200,7 +203,10 @@ export default function LoginPage() {
 
               <div className="bg-slate-50 border border-slate-100 rounded-2xl p-2 shadow-inner transform group hover:border-blue-100 hover:bg-white hover:shadow-lg transition-all duration-300">
                 <input
+                  id="login-password"
+                  name="password"
                   type="password"
+                  autoComplete="current-password"
                   placeholder="••••••••••••"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}

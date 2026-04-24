@@ -113,7 +113,10 @@ export default function RegisterPage() {
             <div>
               <label className="mb-2 block text-sm font-bold text-slate-700">Nama Lengkap</label>
               <input
+                id="register-name"
+                name="name"
                 type="text"
+                autoComplete="name"
                 value={name}
                 onChange={(e) => setName(e.target.value)}
                 className="w-full rounded-2xl border border-slate-200 px-4 py-3 outline-none transition focus:border-blue-500"
@@ -125,6 +128,8 @@ export default function RegisterPage() {
             <div>
               <label className="mb-2 block text-sm font-bold text-slate-700">Role Akses</label>
               <select
+                id="register-role"
+                name="role"
                 value={role}
                 onChange={(e) => setRole(e.target.value as RegisterRole)}
                 className="w-full rounded-2xl border border-slate-200 px-4 py-3 outline-none transition focus:border-blue-500"
@@ -139,7 +144,10 @@ export default function RegisterPage() {
             <div>
               <label className="mb-2 block text-sm font-bold text-slate-700">Email Gmail</label>
               <input
+                id="register-email"
+                name="email"
                 type="email"
+                autoComplete="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 className="w-full rounded-2xl border border-slate-200 px-4 py-3 outline-none transition focus:border-blue-500"
@@ -151,7 +159,10 @@ export default function RegisterPage() {
             <div>
               <label className="mb-2 block text-sm font-bold text-slate-700">{identityLabel}</label>
               <input
+                id="register-identity"
+                name="npm"
                 type="text"
+                autoComplete="username"
                 value={npm}
                 onChange={(e) => setNpm(e.target.value)}
                 className="w-full rounded-2xl border border-slate-200 px-4 py-3 outline-none transition focus:border-blue-500"
@@ -164,7 +175,10 @@ export default function RegisterPage() {
               <div>
                 <label className="mb-2 block text-sm font-bold text-slate-700">Kode Khusus Admin</label>
                 <input
+                  id="register-admin-code"
+                  name="adminCode"
                   type="password"
+                  autoComplete="one-time-code"
                   value={adminCode}
                   onChange={(e) => setAdminCode(e.target.value)}
                   className="w-full rounded-2xl border border-slate-200 px-4 py-3 outline-none transition focus:border-blue-500"
@@ -177,7 +191,10 @@ export default function RegisterPage() {
             <div>
               <label className="mb-2 block text-sm font-bold text-slate-700">Password</label>
               <input
+                id="register-password"
+                name="password"
                 type="password"
+                autoComplete="new-password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 className="w-full rounded-2xl border border-slate-200 px-4 py-3 outline-none transition focus:border-blue-500"

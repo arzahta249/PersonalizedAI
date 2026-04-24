@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import bcrypt from "bcrypt";
+import bcrypt from "bcryptjs";
 
 const ROLES = ["ADMIN", "DOSEN", "MAHASISWA"] as const;
 const APPROVAL_STATUSES = ["PENDING", "APPROVED", "REJECTED"] as const;
