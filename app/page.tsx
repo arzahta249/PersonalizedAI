@@ -39,8 +39,8 @@ const heroRotations = [
   },
   {
     badge: "Live Teaching Support",
-    title: "Landing page langsung hidup, informatif, dan siap menjelaskan produk Anda.",
-    text: "Navbar sekarang terhubung ke section yang benar-benar terisi, sementara demo AI bisa menjawab pertanyaan pengunjung tanpa harus login lebih dulu.",
+    title: "Landing page langsung hidup, informatif, dan siap menjelaskan platform Anda.",
+    text: "Demo AI membantu pengunjung memahami fitur, role, dan alur belajar tanpa harus login lebih dulu.",
   },
 ];
 
@@ -391,7 +391,7 @@ export default function Home() {
                 </p>
                 <h2 className="mt-2 text-2xl font-black text-slate-900">Chat dibuka dari ikon robot</h2>
                 <p className="mt-2 max-w-md text-sm leading-6 text-slate-600">
-                  Sekarang chatbot landing page tampil lebih rapi. Klik ikon robot mengambang di kanan bawah untuk mulai bertanya tentang fitur, role, dan alur sistem.
+                  Klik ikon robot mengambang di kanan bawah untuk mulai bertanya tentang fitur, role, dan alur sistem di platform ini.
                 </p>
               </div>
             </div>
@@ -418,10 +418,10 @@ export default function Home() {
           <div className="mb-8 max-w-2xl">
             <p className="text-[11px] font-black uppercase tracking-[0.28em] text-blue-600">Fitur Utama</p>
             <h2 className="mt-3 text-3xl font-black tracking-tight text-slate-900 md:text-4xl">
-              Navbar sekarang langsung mengarah ke isi yang benar-benar ada.
+              Fitur utama platform dirancang untuk belajar, mengajar, dan memantau progres dalam satu alur.
             </h2>
             <p className="mt-4 text-sm leading-7 text-slate-600 md:text-base">
-              Setiap section di landing page ini sekarang terisi dengan penjelasan produk, materi, manfaat, FAQ, dan demo AI yang bisa dipakai langsung oleh pengunjung.
+              Pengunjung bisa langsung memahami nilai produk lewat rangkaian fitur inti, alur pembelajaran, dan demo AI yang menjelaskan sistem secara cepat.
             </p>
           </div>
 
@@ -452,10 +452,10 @@ export default function Home() {
             <div>
               <p className="text-[11px] font-black uppercase tracking-[0.28em] text-blue-600">Materi dan Alur</p>
               <h2 className="mt-3 text-3xl font-black tracking-tight text-slate-900 md:text-4xl">
-                Pengunjung langsung paham bagaimana platform ini dipakai dari awal sampai evaluasi.
+                Pengunjung langsung paham bagaimana platform ini dipakai dari awal belajar sampai evaluasi.
               </h2>
               <p className="mt-4 text-sm leading-7 text-slate-600 md:text-base">
-                Section ini menggantikan menu navbar yang sebelumnya kosong dengan penjelasan alur nyata: mulai dari login, membuka materi, mengerjakan quiz, sampai monitoring hasil belajar.
+                Section ini menjelaskan alur nyata penggunaan platform: mulai dari login, membuka materi, mengerjakan quiz, sampai memantau hasil belajar.
               </p>
 
               <div className="mt-8 rounded-[32px] border border-slate-200 bg-slate-950 p-6 text-white shadow-[0_32px_80px_-36px_rgba(15,23,42,0.6)]">

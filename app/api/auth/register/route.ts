@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { Prisma } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
 import bcrypt from "bcryptjs";
 
@@ -136,6 +137,20 @@ export async function POST(req: Request) {
     });
   } catch (error) {
     console.error("REGISTER ERROR:", error);
+
+    if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === "P1000") {
+      return NextResponse.json(
+        { message: "Koneksi database gagal: kredensial PostgreSQL tidak valid." },
+        { status: 500 }
+      );
+    }
+
+    if (error instanceof Prisma.PrismaClientInitializationError) {
+      return NextResponse.json(
+        { message: "Koneksi database gagal: periksa DATABASE_URL dan konfigurasi SSL." },
+        { status: 500 }
+      );
+    }
 
     return NextResponse.json(
       { message: "Server error" },

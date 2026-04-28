@@ -98,6 +98,11 @@ export default function DaftarQuizPage() {
                   <div className="text-right">
                     <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Nilai Akhir</p>
                     <p className="text-2xl font-black text-emerald-600">{Math.round(quiz.score)}</p>
+                    {quiz.submittedAt ? (
+                      <p className="mt-2 text-[11px] font-semibold text-slate-400">
+                        {new Date(quiz.submittedAt).toLocaleDateString("id-ID")}
+                      </p>
+                    ) : null}
                   </div>
                 )}
               </div>
@@ -119,10 +124,16 @@ export default function DaftarQuizPage() {
                   <ArrowRight size={18} className="group-hover:translate-x-1 transition-transform" />
                 </Link>
               ) : (
-                <div className="flex items-center justify-center w-full p-4 bg-slate-50 text-slate-400 rounded-2xl border border-slate-100 cursor-not-allowed">
-                  <CheckCircle2 size={18} className="mr-2" />
-                  <span className="text-[10px] font-black uppercase tracking-[0.2em]">Sudah Diselesaikan</span>
-                </div>
+                <Link
+                  href={`/dashboard/mahasiswa/quiz/${quiz.id}`}
+                  className="flex items-center justify-between w-full p-4 bg-emerald-50 text-emerald-700 rounded-2xl border border-emerald-100 transition-colors hover:bg-emerald-100"
+                >
+                  <span className="flex items-center text-[10px] font-black uppercase tracking-[0.2em]">
+                    <CheckCircle2 size={18} className="mr-2" />
+                    Lihat Riwayat Jawaban
+                  </span>
+                  <ArrowRight size={18} />
+                </Link>
               )}
             </div>
           ))

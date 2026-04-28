@@ -105,7 +105,7 @@ function buildLocalFallbackReply(input: string, currentPath?: string) {
   }
 
   if (currentPath === "/") {
-    return "Landing page ini menampilkan gambaran umum Personalized AI, mulai dari manfaat platform, fitur utama, alur role, sampai demo asisten AI. Anda bisa lanjut ke login, register, atau menjelajahi section materi, manfaat, dan FAQ langsung dari navbar.";
+    return "Landing page ini menampilkan gambaran umum Personalized AI, mulai dari manfaat platform, fitur utama, alur role, sampai demo asisten AI. Pengunjung bisa lanjut ke login, register, atau memahami alur penggunaan platform langsung dari section yang tersedia.";
   }
 
   return "Saya bisa membantu menjelaskan fitur website ini, perbedaan role, alur penggunaan materi, quiz, penugasan, atau fungsi halaman yang sedang Anda buka. Coba tanya lebih spesifik, misalnya 'apa fungsi dashboard dosen?' atau 'bagaimana alur mahasiswa belajar di sistem ini?'.";

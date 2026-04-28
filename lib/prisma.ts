@@ -17,9 +17,30 @@ if (!databaseUrl) {
 // 🔥 buat koneksi pool
 const poolMax = Number(process.env.PG_POOL_MAX ?? (process.env.NODE_ENV === "production" ? 5 : 10));
 
+const rejectUnauthorizedEnv = process.env.PGSSL_REJECT_UNAUTHORIZED;
+const rejectUnauthorized =
+  rejectUnauthorizedEnv == null
+    ? process.env.NODE_ENV === "production"
+    : rejectUnauthorizedEnv.toLowerCase() !== "false";
+
+const normalizedDatabaseUrl = (() => {
+  try {
+    const url = new URL(databaseUrl);
+    url.searchParams.delete("sslmode");
+    return url.toString();
+  } catch {
+    return databaseUrl;
+  }
+})();
+
 const pool = new Pool({
-  connectionString: databaseUrl,
+  connectionString: normalizedDatabaseUrl,
   max: Number.isFinite(poolMax) && poolMax > 0 ? poolMax : undefined,
+  ssl: databaseUrl.includes("sslmode=")
+    ? {
+        rejectUnauthorized,
+      }
+    : undefined,
 });
 
 // 🔥 pakai adapter

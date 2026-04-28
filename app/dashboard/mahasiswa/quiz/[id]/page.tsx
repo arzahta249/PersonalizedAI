@@ -1,46 +1,110 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useParams, useRouter } from "next/navigation";
-import { Loader2, CheckCircle2, AlertCircle, ChevronLeft, Send } from "lucide-react";
+import { useParams } from "next/navigation";
+import { Loader2, CheckCircle2, Send, FileText, CircleCheck, CircleX } from "lucide-react";
 import Link from "next/link";
 import { useAppDialog } from "@/components/AppDialogProvider";
 
+type QuizQuestion = {
+  id: string;
+  question?: string;
+  text?: string;
+  type: "MCQ" | "ESSAY";
+  options?: string[] | string | null;
+};
+
+type QuizResultQuestion = {
+  id: string;
+  question: string;
+  type: "MCQ" | "ESSAY";
+  options?: string[] | string | null;
+  studentAnswer: string;
+  referenceAnswer: string;
+  isCorrect: boolean;
+};
+
+type QuizResultDetail = {
+  id: string;
+  score: number;
+  correct: number;
+  wrong: number;
+  createdAt: string;
+  questions: QuizResultQuestion[];
+};
+
+type QuizDetail = {
+  id: string;
+  title: string;
+  module?: {
+    title?: string;
+    course?: {
+      title?: string;
+    };
+  };
+  questions: QuizQuestion[];
+  result?: QuizResultDetail | null;
+};
+
+function normalizeOptions(options: QuizQuestion["options"]) {
+  if (Array.isArray(options)) return options;
+  if (typeof options === "string") {
+    try {
+      const parsed = JSON.parse(options);
+      return Array.isArray(parsed) ? parsed : [];
+    } catch {
+      return [];
+    }
+  }
+
+  return [];
+}
+
 export default function KerjakanQuizPage() {
   const params = useParams();
-  const router = useRouter();
   const dialog = useAppDialog();
   
-  const [quiz, setQuiz] = useState<any>(null);
+  const [quiz, setQuiz] = useState<QuizDetail | null>(null);
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [answers, setAnswers] = useState<{ [key: string]: string }>({});
-  const [scoreResult, setScoreResult] = useState<number | null>(null);
+  const [resultDetail, setResultDetail] = useState<QuizResultDetail | null>(null);
 
   useEffect(() => {
     if (!params?.id) return;
 
-    fetch(`/api/mahasiswa/quizzes/${params.id}`)
+    const userId = localStorage.getItem("userId");
+    if (!userId) {
+      setLoading(false);
+      return;
+    }
+
+    fetch(`/api/mahasiswa/quizzes/${params.id}?userId=${userId}`)
       .then((res) => res.json())
       .then((data) => {
         setQuiz(data);
+        setResultDetail(data?.result || null);
         setLoading(false);
       })
       .catch(() => setLoading(false));
   }, [params?.id]);
 
-  // Fungsi saat opsi dipilih
-  const handleSelectOption = (questionId: string, option: string) => {
+  const handleAnswerChange = (questionId: string, value: string) => {
     setAnswers((prev) => ({
       ...prev,
-      [questionId]: option,
+      [questionId]: value,
     }));
   };
 
-  // Fungsi submit ujian
+  const answeredCount = quiz?.questions.filter((question) => {
+    const answer = answers[question.id];
+    return typeof answer === "string" && answer.trim().length > 0;
+  }).length || 0;
+
   const handleSubmit = async () => {
-    // Validasi apakah semua soal sudah dijawab
-    if (Object.keys(answers).length < quiz.questions.length) {
+    if (!quiz) return;
+
+    if (answeredCount < quiz.questions.length) {
       await dialog.alert({
         title: "Jawaban belum lengkap",
         message: "Harap jawab semua pertanyaan terlebih dahulu sebelum mengumpulkan ujian.",
@@ -73,7 +137,7 @@ export default function KerjakanQuizPage() {
       if (!res.ok) throw new Error("Gagal mengirim jawaban");
 
       const data = await res.json();
-      setScoreResult(data.score); // Tampilkan nilai
+      setResultDetail(data.result || null);
     } catch (error) {
       console.error(error);
       await dialog.alert({
@@ -100,24 +164,133 @@ export default function KerjakanQuizPage() {
     return <div className="text-center p-20 text-red-500">Kuis tidak ditemukan.</div>;
   }
 
-  // JIKA SUDAH SELESAI MENGERJAKAN (Tampilkan Hasil)
-  if (scoreResult !== null) {
+  if (resultDetail) {
     return (
-      <div className="max-w-2xl mx-auto mt-20 p-10 bg-white border border-slate-100 rounded-[3rem] shadow-2xl text-center space-y-6 animate-in zoom-in-95 duration-500">
-        <div className="w-24 h-24 bg-emerald-50 text-emerald-500 rounded-full flex items-center justify-center mx-auto mb-6">
-          <CheckCircle2 size={50} />
-        </div>
-        <h2 className="text-3xl font-black text-slate-900">Ujian Selesai!</h2>
-        <p className="text-slate-500 font-medium">Kamu telah berhasil menyelesaikan kuis ini.</p>
-        
-        <div className="py-8 bg-slate-50 rounded-[2rem] border border-slate-100">
-          <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">Nilai Akhir Kamu</p>
-          <h1 className="text-7xl font-black text-blue-600">{Math.round(scoreResult)}</h1>
+      <div className="max-w-4xl mx-auto p-6 md:p-10 space-y-8 animate-in fade-in duration-700">
+        <div className="bg-white p-8 rounded-[2.5rem] border border-slate-100 shadow-sm">
+          <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-6">
+            <div>
+              <span className="text-[10px] font-black text-emerald-600 uppercase tracking-widest bg-emerald-50 px-3 py-1.5 rounded-full inline-block">
+                Riwayat Jawaban
+              </span>
+              <h1 className="mt-4 text-3xl font-black text-slate-900">{quiz.title}</h1>
+              <p className="text-slate-500 text-sm font-medium mt-1">
+                Bab: {quiz.module?.title} | {quiz.module?.course?.title || "Mata Kuliah"}
+              </p>
+            </div>
+            <div className="grid grid-cols-3 gap-3">
+              <div className="rounded-2xl bg-slate-50 border border-slate-100 px-5 py-4 text-center">
+                <p className="text-[10px] font-black uppercase tracking-widest text-slate-400">Nilai</p>
+                <p className="mt-2 text-3xl font-black text-blue-600">{Math.round(resultDetail.score)}</p>
+              </div>
+              <div className="rounded-2xl bg-emerald-50 border border-emerald-100 px-5 py-4 text-center">
+                <p className="text-[10px] font-black uppercase tracking-widest text-emerald-600">Benar</p>
+                <p className="mt-2 text-3xl font-black text-emerald-600">{resultDetail.correct}</p>
+              </div>
+              <div className="rounded-2xl bg-rose-50 border border-rose-100 px-5 py-4 text-center">
+                <p className="text-[10px] font-black uppercase tracking-widest text-rose-600">Salah</p>
+                <p className="mt-2 text-3xl font-black text-rose-600">{resultDetail.wrong}</p>
+              </div>
+            </div>
+          </div>
         </div>
 
-        <Link href="/dashboard/mahasiswa/quiz" className="block w-full py-4 bg-slate-900 text-white rounded-2xl font-bold text-sm hover:bg-slate-800 transition-colors">
-          Kembali ke Daftar Kuis
-        </Link>
+        <div className="space-y-6">
+          {resultDetail.questions.map((question, index) => {
+            const options = normalizeOptions(question.options);
+            const hasStudentAnswer = question.studentAnswer.trim().length > 0;
+
+            return (
+              <div key={question.id} className="bg-white p-8 md:p-10 rounded-[2.5rem] border border-slate-100 shadow-sm space-y-6">
+                <div className="flex gap-4 items-start">
+                  <div className="w-10 h-10 shrink-0 bg-slate-900 text-white font-black rounded-xl flex items-center justify-center">
+                    {index + 1}
+                  </div>
+                  <div className="flex-1">
+                    <div className="flex flex-wrap items-center gap-3">
+                      <h3 className="text-lg font-bold text-slate-800 leading-relaxed">{question.question}</h3>
+                      <span
+                        className={`inline-flex items-center gap-2 rounded-full px-3 py-1 text-[10px] font-black uppercase tracking-widest ${
+                          question.isCorrect
+                            ? "bg-emerald-50 text-emerald-600"
+                            : "bg-rose-50 text-rose-600"
+                        }`}
+                      >
+                        {question.isCorrect ? <CircleCheck size={14} /> : <CircleX size={14} />}
+                        {question.isCorrect ? "Benar" : "Perlu Diperbaiki"}
+                      </span>
+                    </div>
+                    <p className="mt-2 text-xs font-semibold uppercase tracking-[0.2em] text-slate-400">
+                      {question.type === "ESSAY" ? "Essay" : "Pilihan Ganda"}
+                    </p>
+                  </div>
+                </div>
+
+                {question.type === "MCQ" ? (
+                  <div className="space-y-3 md:pl-14">
+                    {options.map((option, optionIndex) => {
+                      const isStudentChoice = question.studentAnswer === option;
+                      const isReferenceAnswer = question.referenceAnswer === option;
+
+                      return (
+                        <div
+                          key={`${question.id}-${optionIndex}`}
+                          className={`rounded-2xl border p-4 ${
+                            isReferenceAnswer
+                              ? "border-emerald-200 bg-emerald-50"
+                              : isStudentChoice
+                                ? "border-blue-200 bg-blue-50"
+                                : "border-slate-100 bg-slate-50"
+                          }`}
+                        >
+                          <div className="flex items-start justify-between gap-4">
+                            <span className="text-sm font-semibold text-slate-700">{option}</span>
+                            <div className="flex flex-wrap justify-end gap-2">
+                              {isStudentChoice ? (
+                                <span className="rounded-full bg-blue-600 px-3 py-1 text-[10px] font-black uppercase tracking-widest text-white">
+                                  Jawaban Kamu
+                                </span>
+                              ) : null}
+                              {isReferenceAnswer ? (
+                                <span className="rounded-full bg-emerald-600 px-3 py-1 text-[10px] font-black uppercase tracking-widest text-white">
+                                  Kunci
+                                </span>
+                              ) : null}
+                            </div>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                ) : (
+                  <div className="md:pl-14 grid gap-4">
+                    <div className="rounded-[2rem] border border-blue-100 bg-blue-50 p-5">
+                      <p className="text-[10px] font-black uppercase tracking-widest text-blue-600">Jawaban Kamu</p>
+                      <p className="mt-3 whitespace-pre-line text-sm leading-7 text-slate-700">
+                        {hasStudentAnswer ? question.studentAnswer : "Belum ada jawaban yang tersimpan."}
+                      </p>
+                    </div>
+                    <div className="rounded-[2rem] border border-emerald-100 bg-emerald-50 p-5">
+                      <p className="text-[10px] font-black uppercase tracking-widest text-emerald-600">Panduan Jawaban</p>
+                      <p className="mt-3 whitespace-pre-line text-sm leading-7 text-slate-700">
+                        {question.referenceAnswer || "Belum ada panduan jawaban dari dosen."}
+                      </p>
+                    </div>
+                  </div>
+                )}
+              </div>
+            );
+          })}
+        </div>
+
+        <div className="flex flex-col sm:flex-row gap-4">
+          <Link
+            href="/dashboard/mahasiswa/quiz"
+            className="flex-1 py-4 bg-slate-900 text-white rounded-2xl font-bold text-sm text-center hover:bg-slate-800 transition-colors"
+          >
+            Kembali ke Daftar Kuis
+          </Link>
+        </div>
       </div>
     );
   }
@@ -137,16 +310,14 @@ export default function KerjakanQuizPage() {
         <div className="px-5 py-3 bg-slate-50 border border-slate-100 rounded-2xl text-center">
           <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Progress</p>
           <p className="font-bold text-slate-800">
-            {Object.keys(answers).length} / {quiz.questions.length} Dijawab
+            {answeredCount} / {quiz.questions.length} Dijawab
           </p>
         </div>
       </div>
 
-      {/* DAFTAR SOAL */}
       <div className="space-y-8">
-        {quiz.questions.map((q: any, index: number) => {
-          // Asumsi opsi disimpan dalam bentuk array string atau JSON
-          const options = typeof q.options === "string" ? JSON.parse(q.options) : q.options;
+        {quiz.questions.map((q, index: number) => {
+          const options = normalizeOptions(q.options);
 
           return (
             <div key={q.id} className="bg-white p-8 md:p-10 rounded-[2.5rem] border border-slate-100 shadow-sm">
@@ -154,35 +325,55 @@ export default function KerjakanQuizPage() {
                 <div className="w-10 h-10 shrink-0 bg-blue-600 text-white font-black rounded-xl flex items-center justify-center">
                   {index + 1}
                 </div>
-                {/* Asumsi nama field soal adalah 'question' atau 'text' */}
+                <div className="flex-1">
                 <h3 className="text-lg font-bold text-slate-800 leading-relaxed mt-1">
                   {q.question || q.text}
                 </h3>
+                <p className="mt-2 text-[10px] font-black uppercase tracking-[0.25em] text-slate-400">
+                  {q.type === "ESSAY" ? "Essay" : "Pilihan Ganda"}
+                </p>
+                </div>
               </div>
 
-              <div className="space-y-3 pl-0 md:pl-14">
-                {options?.map((opt: string, i: number) => {
-                  const isSelected = answers[q.id] === opt;
-                  return (
-                    <button
-                      key={i}
-                      onClick={() => handleSelectOption(q.id, opt)}
-                      className={`w-full text-left p-5 rounded-2xl border-2 transition-all duration-200 ${
-                        isSelected 
-                          ? "border-blue-600 bg-blue-50 text-blue-800" 
-                          : "border-slate-100 hover:border-blue-300 hover:bg-slate-50 text-slate-600"
-                      }`}
-                    >
-                      <div className="flex items-center gap-4">
-                        <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center shrink-0 ${isSelected ? "border-blue-600" : "border-slate-300"}`}>
-                          {isSelected && <div className="w-2.5 h-2.5 bg-blue-600 rounded-full"></div>}
+              {q.type === "ESSAY" ? (
+                <div className="pl-0 md:pl-14">
+                  <label className="mb-3 flex items-center gap-2 text-[11px] font-black uppercase tracking-[0.2em] text-slate-500">
+                    <FileText size={14} />
+                    Tulis Jawaban Essay
+                  </label>
+                  <textarea
+                    rows={6}
+                    value={answers[q.id] || ""}
+                    onChange={(event) => handleAnswerChange(q.id, event.target.value)}
+                    placeholder="Tulis jawabanmu dengan jelas di sini..."
+                    className="w-full rounded-[2rem] border border-slate-200 bg-slate-50 px-5 py-4 text-sm font-medium leading-7 text-slate-700 outline-none transition focus:border-blue-500 focus:bg-white"
+                  />
+                </div>
+              ) : (
+                <div className="space-y-3 pl-0 md:pl-14">
+                  {options.map((opt: string, i: number) => {
+                    const isSelected = answers[q.id] === opt;
+                    return (
+                      <button
+                        key={i}
+                        onClick={() => handleAnswerChange(q.id, opt)}
+                        className={`w-full text-left p-5 rounded-2xl border-2 transition-all duration-200 ${
+                          isSelected 
+                            ? "border-blue-600 bg-blue-50 text-blue-800" 
+                            : "border-slate-100 hover:border-blue-300 hover:bg-slate-50 text-slate-600"
+                        }`}
+                      >
+                        <div className="flex items-center gap-4">
+                          <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center shrink-0 ${isSelected ? "border-blue-600" : "border-slate-300"}`}>
+                            {isSelected && <div className="w-2.5 h-2.5 bg-blue-600 rounded-full"></div>}
+                          </div>
+                          <span className="font-medium text-sm md:text-base leading-relaxed">{opt}</span>
                         </div>
-                        <span className="font-medium text-sm md:text-base leading-relaxed">{opt}</span>
-                      </div>
-                    </button>
-                  );
-                })}
-              </div>
+                      </button>
+                    );
+                  })}
+                </div>
+              )}
             </div>
           );
         })}

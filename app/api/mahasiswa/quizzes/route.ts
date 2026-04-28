@@ -27,6 +27,10 @@ export async function GET(req: Request) {
           where: {
             userId: userId, // Cari tahu apakah user ini sudah mengerjakan
           },
+          orderBy: {
+            createdAt: "desc",
+          },
+          take: 1,
         },
       },
       orderBy: {
@@ -44,6 +48,7 @@ export async function GET(req: Request) {
         courseTitle: q.module?.course?.title || "Mata Kuliah",
         status: result ? "SELESAI" : "BELUM",
         score: result ? result.score : null,
+        submittedAt: result ? result.createdAt : null,
       };
     });
 
