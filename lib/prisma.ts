@@ -6,7 +6,9 @@ const globalForPrisma = globalThis as {
   prisma?: PrismaClient;
 };
 
-const databaseUrl = process.env.DATABASE_URL;
+const databaseUrl =
+  process.env.DATABASE_URL ??
+  (process.env.NODE_ENV !== "production" ? process.env.DIRECT_URL : undefined);
 
 if (!databaseUrl) {
   throw new Error(
@@ -14,8 +16,8 @@ if (!databaseUrl) {
   );
 }
 
-// 🔥 buat koneksi pool
 const poolMax = Number(process.env.PG_POOL_MAX ?? (process.env.NODE_ENV === "production" ? 5 : 10));
+const connectionTimeoutMillis = Number(process.env.PG_CONNECTION_TIMEOUT_MS ?? 10_000);
 
 const rejectUnauthorizedEnv = process.env.PGSSL_REJECT_UNAUTHORIZED;
 const rejectUnauthorized =
@@ -23,33 +25,47 @@ const rejectUnauthorized =
     ? process.env.NODE_ENV === "production"
     : rejectUnauthorizedEnv.toLowerCase() !== "false";
 
-const normalizedDatabaseUrl = (() => {
+const parsedDatabaseUrl = (() => {
   try {
-    const url = new URL(databaseUrl);
-    url.searchParams.delete("sslmode");
-    return url.toString();
+    return new URL(databaseUrl);
   } catch {
-    return databaseUrl;
+    return null;
   }
 })();
+
+const normalizedDatabaseUrl = (() => {
+  if (!parsedDatabaseUrl) return databaseUrl;
+
+  const url = new URL(parsedDatabaseUrl);
+  url.searchParams.delete("sslmode");
+  return url.toString();
+})();
+
+const requiresSsl =
+  databaseUrl.includes("sslmode=") ||
+  parsedDatabaseUrl?.hostname.endsWith(".supabase.co") ||
+  parsedDatabaseUrl?.hostname.endsWith(".pooler.supabase.com");
 
 const pool = new Pool({
   connectionString: normalizedDatabaseUrl,
   max: Number.isFinite(poolMax) && poolMax > 0 ? poolMax : undefined,
-  ssl: databaseUrl.includes("sslmode=")
+  connectionTimeoutMillis:
+    Number.isFinite(connectionTimeoutMillis) && connectionTimeoutMillis > 0
+      ? connectionTimeoutMillis
+      : 10_000,
+  ssl: requiresSsl
     ? {
         rejectUnauthorized,
       }
     : undefined,
 });
 
-// 🔥 pakai adapter
 const adapter = new PrismaPg(pool);
 
 export const prisma =
   globalForPrisma.prisma ??
   new PrismaClient({
-    adapter, // ✅ INI WAJIB DI PRISMA 7
+    adapter,
   });
 
 if (process.env.NODE_ENV !== "production") {
