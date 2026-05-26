@@ -1,0 +1,19 @@
+[33mcommit 09706e14c6518e82645fd772bee224f8db6de0fa[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mcodex/supabase-migration[m[33m, [m[1;32mmaster[m[33m)[m
+Author: Alifi Arzahta <alifiarzahta@gmail.com>
+Date:   Thu Apr 23 15:20:41 2026 +0700
+
+    add Supabase migration and data transfer workflow
+
+.env.supabase.example
+.gitignore
+README.md
+elearning-ai@0.1.0
+lib/prisma.ts
+package.json
+prisma.config.ts
+prisma/supabase-baseline.sql
+scripts/db/bootstrap-supabase.mjs
+scripts/db/export-postgres.mjs
+scripts/db/import-postgres.mjs
+scripts/db/shared.mjs
+tsconfig.json
